@@ -12,7 +12,8 @@
         <form>
           <div :class="{on:isLoginType}">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone" v-validate="{required: true,regex: /^1\d{10}$/}"/>
+              <!-- <input type="tel" maxlength="11" placeholder="手机号" v-model="phone" name="phone" v-validate="{required: true,regex: /^1\d{10}$/}"/> -->
+              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone" name="phone" v-validate="'required|mobile'"/>
               <span style="color: red;" v-show="errors.has('phone')">{{ errors.first('phone') }}</span>
               <button
                 :disabled="!isRightPhone || sendTime >0 "
@@ -32,10 +33,13 @@
           <div :class="{on:!isLoginType}">
             <section>
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" v-model="name"/>
+                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" v-model="name" name="name" v-validate="'required'"/>
+                <span style="color: red;" v-show="errors.has('name')">{{ errors.first('name') }}</span>             
               </section>
               <section class="login_verification">
-                <input :type="isShowPwd? 'text':'password'" maxlength="8" placeholder="密码" v-model="pwd"/>
+                <input :type="isShowPwd? 'text':'password'" maxlength="8" placeholder="密码" v-model="pwd" name="pwd" v-validate="'required'"/>
+                <span style="color: red;" v-show="errors.has('pwd')">{{ errors.first('pwd') }}</span>
+                
                 <div
                   class="switch_button"
                   :class="isShowPwd? 'on':'off'"
@@ -66,29 +70,8 @@
 <script type="text/ecmascript-6">
 //import { setInterval, clearInterval } from 'timers';
 import { reqSendCode, reqPwdLogin, reqSmsLogin } from '../../api'
-import zh_CN from 'vee-validate/dist/locale/zh_CN'
 
-import Vue from 'vue'
-import VeeValidate from 'vee-validate'
 
-Vue.use(VeeValidate)
-//提示信息本地化
-VeeValidate.Validator.localize('zh_CN', {
-  messages: zh_CN.messages,
-  attributes: {
-    phone: '手机号',
-    code: '验证码'
-  }
-})
-
-//自定义验证规则
-import VeeValidate from 'vee-validate'
-VeeValidate.Validator.extend('mobile', {
-  validate: value => {
-    return /^1\d{10}$/.test(value)
-  },
-  getMessage: field => field + '必须是11位手机号码'
-})
 export default {
   data() {
     return {
@@ -142,24 +125,40 @@ export default {
     //3. 登录 用户名密码  手机号短信
     async login(){
       const { isLoginType, phone, code, name, pwd, captcha } = this
-      let result 
-      if(isLoginType){  //短信登录
-        result = await reqSmsLogin({ phone, code })
-      }else{
-        result = await reqPwdLogin({name, pwd, captcha})
+      let names
+      if (isLoginType) { 
+        names = ['phone', 'code']
+      } else {
+        names = ['name', 'pwd', 'captcha']
       }
+      // 进行统一的前台表单验证
+      const success = await this.$validator.validateAll(names)
 
-      //登录成功时
-      if(result.code === 0){
-        //1.保存用户信息到state中，2.跳转到个人中心界面
-        const user = result.data
-        this.$store.dispatch('recodeUser',{user})
+      // 验证通过后发ajax请求
+      if (success) {
+        //alert('发送登陆的请求')      
+        let result 
+        if(isLoginType){  //短信登录
+          result = await reqSmsLogin({ phone, code })
+        }else{
+          result = await reqPwdLogin({name, pwd, captcha})
+        }
 
-        // 2.跳转到个人中心界面
-        this.$router.replace('/profile')
-      }else{
-        alert(result.msg)
+         //登录成功时
+        if(result.code === 0){
+          //1.保存用户信息到state中，2.跳转到个人中心界面
+          const user = result.data
+          this.$store.dispatch('recodeUser',user)
+
+          // 2.跳转到个人中心界面
+          this.$router.replace('/profile')
+        }else{
+          alert(result.msg)
+        }
+        
       }
+      
+     
     }
 
   }

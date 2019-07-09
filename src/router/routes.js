@@ -3,6 +3,11 @@ import MSite from '../pages/MSite/MSite.vue'
 import Search from '../pages/Search/Search.vue'
 import Profile from '../pages/Profile/Profile.vue'
 import Login from '../pages/Login/Login.vue'
+import Shop from '../pages/Shop/Shop.vue'
+import ShopGoods from '../pages/Shop/ShopGoods.vue'
+import ShopInfo from '../pages/Shop/ShopInfo.vue'
+import ShopRatings from '../pages/Shop/ShopRatings.vue'
+
 
 export default [
   //配置路由的
@@ -39,7 +44,29 @@ export default [
     component: Login
   },
   {
-    path: '/',
+    path: '/shop',
+    component: Shop,
+    children:[
+      {
+        path: '/shop/goods',
+        component: ShopGoods
+      },
+      {
+        path: '/shop/info',
+        component: ShopInfo,
+      },
+      {
+        path: '/shop/ratings',
+        component: ShopRatings
+      },
+      {
+        path: '/shop',
+        redirect: '/shop/goods'
+      },
+    ]
+  },
+  {
+    path: '/',  // 项目根路径
     redirect: '/msite'
   }
 ]

@@ -2,7 +2,12 @@ import {RECEIVE_ADDRESS,
         RECEIVE_CATEGORYS, 
         RECEIVE_SHOPS, 
         RECEIVE_USER,
-        RESET_USER} from './mutation_types'
+        RESET_USER,
+        RECEIVE_TOKEN,
+        RESET_TOKEN,
+        RECEIVE_INFO,
+        RECEIVE_GOODS,
+        RECEIVE_RATINGS} from './mutation_types'
 
 export default {
   [RECEIVE_ADDRESS](state, address){//address是要传过来的参数
@@ -20,5 +25,20 @@ export default {
   },
   [RESET_USER](state){
     state.user = {}
-  }
+  },
+  [RECEIVE_TOKEN](state,{token}){
+    state.token = token
+  },
+  [RESET_TOKEN](state){
+    state.token = ''
+  },
+  [RECEIVE_INFO](state,{info}){
+    state.info = info
+  },
+  [RECEIVE_GOODS](state,{goods}){
+    state.goods = goods
+  },
+  [RECEIVE_RATINGS](state,{ratings}){
+    state.ratings = ratings
+  },
 }
