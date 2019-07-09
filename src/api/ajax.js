@@ -7,6 +7,9 @@
 */
 import axios from 'axios'
 import qs from 'qs'
+import store from '../store'
+import router from '../router'
+
 
 //全局配置请求超时的【不能小于服务那边给的值，服务器给的是2000】
 axios.defaults.timeout = 5000
@@ -20,6 +23,12 @@ axios.interceptors.request.use(function (config) {
     config.data = qs.stringify(data)  //将对象形式的数据转为  a='1'&b='2'
   }
 
+  // 如果浏览器有tokden, 就自动携带上token
+  const token = localStorage.getItem('token_key')
+  if(token){
+    config.headers.Authorization = 'token ' + token
+  }
+
   return config;
 });
 
@@ -30,7 +39,19 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
   // Do something with response error
   //return Promise.reject(error);-----走失败的回调里面
-  alert('请求出错：'+error.message)
+  //alert('请求出错：'+error.message)
+  const status = error.response.status
+  const msg = error.message
+  if(status===401){
+    //退出登录
+    store.dispatch('logout')
+    router.replace('/login')
+  }else if(status ===404){
+    alert('请求的资源不存在')
+  }else{
+    alert('请求异常' + msg)
+  }
+
   return new Promise(() => {})   
   //统一处理请求失败的结果；中断promise链，让它返回的一直是pending的状态；防止走请求失败的回调中
 });
